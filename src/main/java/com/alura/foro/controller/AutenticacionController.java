@@ -6,6 +6,7 @@ import com.alura.foro.domain.usuario.UsuarioLoginDTO;
 import com.alura.foro.domain.usuario.UsuarioRepository;
 import com.alura.foro.infra.Segurity.DatosJWTToken;
 import com.alura.foro.infra.Segurity.TokenService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/user")
+@SecurityRequirement(name = "bearer-key")
 public class AutenticacionController {
 
     @Autowired
