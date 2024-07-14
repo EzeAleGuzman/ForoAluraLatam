@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,12 +37,12 @@ public class TopicoController {
     private TopicoConverterService topicoConverterService;
 
     @GetMapping
-    public  ResponseEntity<Page<DatosTopicoDTO>> getAllTopicos(@AuthenticationPrincipal Pageable pageable) {
+    public  ResponseEntity<Page<DatosTopicoDTO>> getAllTopicos(@PageableDefault(page = 0, size = 5)Pageable pageable) {
            return ResponseEntity.ok(topicoConverterService.findAll(pageable));
     }
 
     @PostMapping
-    public ResponseEntity<DatosTopicoDTO> crearTopico(@RequestBody @Valid DatosRegistroTopico datosRegistroTopico) {
+    public ResponseEntity<?> crearTopico(@RequestBody @Valid DatosRegistroTopico datosRegistroTopico) {
         Usuario autor = usuarioRepository.findById(datosRegistroTopico.autor().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Autor no encontrado"));
         Curso curso = cursoRepository.findById(datosRegistroTopico.curso().getId())
@@ -57,13 +58,13 @@ public class TopicoController {
         topicoRepository.save(topico);
 
         DatosTopicoDTO datosTopicoDTO = topicoConverterService.convertToDTO(topico);
-        return ResponseEntity.status(HttpStatus.CREATED).body(datosTopicoDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Tópico creado exitosamente");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DatosTopicoDTO> actualizarTopico(@PathVariable Long id, @RequestBody @Valid DatosActualizarTopico datosActualizarTopico) {
+    public ResponseEntity<?> actualizarTopico(@PathVariable Long id, @RequestBody @Valid DatosActualizarTopico datosActualizarTopico) {
         Topico topico = topicoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tópico no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NO_CONTENT,"Tópico no encontrado"));
 
         Usuario autor = usuarioRepository.findById(datosActualizarTopico.autor().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Autor no encontrado"));
@@ -79,19 +80,21 @@ public class TopicoController {
             topicoRepository.save(topico);
         } catch (DataIntegrityViolationException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El título del tópico ya existe");
+        } catch (ResponseStatusException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El título del tópico no existe en la base de datos");
         }
 
         DatosTopicoDTO datosTopicoDTO = topicoConverterService.convertToDTO(topico);
-        return ResponseEntity.ok(datosTopicoDTO);
+        return ResponseEntity.ok("Topico Editado" + datosTopicoDTO);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarTopico(@PathVariable Long id) {
+    public ResponseEntity<?> eliminarTopico(@PathVariable Long id) {
         Topico topico = topicoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tópico no encontrado"));
 
         topicoRepository.delete(topico);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Topico: "+ topico.getTitulo() + "-*- Eliminado Correctamente");
     }
 
 

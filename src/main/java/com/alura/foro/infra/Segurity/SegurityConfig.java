@@ -21,15 +21,19 @@ public class SegurityConfig {
     @Autowired
     private AutenticacionService autenticacionService;
 
+    @Autowired
+    private SecurityFilter securityFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(csrf -> csrf.disable())
+        http.csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/user/login").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .build();
+                        .anyRequest().authenticated())
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean

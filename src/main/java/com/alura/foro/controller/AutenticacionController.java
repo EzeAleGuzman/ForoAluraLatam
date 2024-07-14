@@ -46,7 +46,6 @@ public class AutenticacionController {
             );
             var usuarioAutenticado = authenticationManager.authenticate(authToken);
             var JWTtoken = tokenService.generarToken((Usuario) usuarioAutenticado.getPrincipal());
-            System.out.println(JWTtoken);
             return ResponseEntity.ok(new DatosJWTToken(JWTtoken));
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Contraseña incorrecta");
