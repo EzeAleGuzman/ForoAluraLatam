@@ -6,7 +6,13 @@ import com.alura.foro.domain.usuario.UsuarioLoginDTO;
 import com.alura.foro.domain.usuario.UsuarioRepository;
 import com.alura.foro.infra.Segurity.DatosJWTToken;
 import com.alura.foro.infra.Segurity.TokenService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Usuarios", description = "Esta capa se ocupa de la autenticacion y creacion de usuarios")
 @RequestMapping("/user")
 @SecurityRequirement(name = "bearer-key")
 public class AutenticacionController {
@@ -40,6 +47,13 @@ public class AutenticacionController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
+    @Operation(summary = "Autenticar usuario", description = "Autentica un usuario y retorna un token JWT")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Autenticación exitosa", content = @Content(schema = @Schema(implementation = DatosJWTToken.class))),
+            @ApiResponse(responseCode = "401", description = "Contraseña incorrecta"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error en el proceso de autenticación")
+    })
     public ResponseEntity<?> autenticarUsuario(@RequestBody @Valid UsuarioLoginDTO usuarioLoginDTO) {
         try {
             Authentication authToken = new UsernamePasswordAuthenticationToken(

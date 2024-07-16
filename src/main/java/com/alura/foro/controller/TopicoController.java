@@ -6,6 +6,12 @@ import com.alura.foro.domain.topico.*;
 import com.alura.foro.domain.usuario.Usuario;
 import com.alura.foro.domain.usuario.UsuarioRepository;
 import com.alura.foro.service.TopicoConverterService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,8 +26,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
+
 @RestController
+@Tag(name = "Topicos", description = "Es la clase principal del proyecto de foro-alura")
 @RequestMapping("/topicos")
+@SecurityRequirement(name = "bearer-key")
 public class TopicoController {
 
     @Autowired
@@ -36,12 +45,15 @@ public class TopicoController {
     @Autowired
     private TopicoConverterService topicoConverterService;
 
+    @Operation(summary = "Obtener todos los tópicos", description = "Retorna una lista paginada de tópicos")
     @GetMapping
+    @Transactional
     public  ResponseEntity<Page<DatosTopicoDTO>> getAllTopicos(@PageableDefault(page = 0, size = 5)Pageable pageable) {
            return ResponseEntity.ok(topicoConverterService.findAll(pageable));
     }
 
-    @PostMapping
+    @Operation(summary = "Crea nuevos tópicos", description = "Crea un nuevo tópico y lo guarda en la base de datos")    @PostMapping
+    @Transactional
     public ResponseEntity<?> crearTopico(@RequestBody @Valid DatosRegistroTopico datosRegistroTopico) {
         Usuario autor = usuarioRepository.findById(datosRegistroTopico.autor().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Autor no encontrado"));
@@ -62,6 +74,8 @@ public class TopicoController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un tópico", description = "Actualiza un tópico existente en la base de datos")
+    @Transactional
     public ResponseEntity<?> actualizarTopico(@PathVariable Long id, @RequestBody @Valid DatosActualizarTopico datosActualizarTopico) {
         Topico topico = topicoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NO_CONTENT,"Tópico no encontrado"));
@@ -89,6 +103,7 @@ public class TopicoController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un tópico", description = "Elimina un tópico existente de la base de datos")
     public ResponseEntity<?> eliminarTopico(@PathVariable Long id) {
         Topico topico = topicoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tópico no encontrado"));
